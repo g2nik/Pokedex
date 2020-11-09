@@ -55,24 +55,10 @@ class _CardSwiperState extends State<CardSwiper> {
             ),
             SizedBox(height: 50),
             Text(widget.pokemons[keyIndex].name),
-            pokeType(),
          ],
        ),
     )
     : Center(child: CircularProgressIndicator());
-  }
-
-  Widget pokeType() {
-    return widget.pokemons[keyIndex].numberTypes == 1//widget.pokemons[keyIndex].types.length == 1
-    ? PokeType((widget.pokemons[keyIndex].firstType))
-    : Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        PokeType((widget.pokemons[keyIndex].firstType)),
-        SizedBox(width: 50),
-        PokeType((widget.pokemons[keyIndex].secondType))
-      ],
-    );
   }
 }
 

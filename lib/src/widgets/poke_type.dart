@@ -1,7 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:pokedex/src/models/poke_model.dart';
 
-class PokeType extends StatelessWidget {
-  PokeType(type) {
+class PokeTypes extends StatelessWidget {
+
+  final Pokemon pokemon;
+  PokeTypes(this.pokemon);
+
+  @override
+  Widget build(BuildContext context) {
+    return pokemon.numberTypes == 1
+    ? ToolTip(pokemon.firstType)
+    : Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        ToolTip(pokemon.firstType),
+        SizedBox(width: 50),
+        ToolTip(pokemon.secondType)
+      ],
+    );
+  }
+}
+
+class ToolTip extends StatelessWidget {
+  ToolTip(type) {
     this.type = type;
 
     switch (type) {
@@ -40,7 +61,7 @@ class PokeType extends StatelessWidget {
       child: Container(width: 75, child: Image.asset("assets/types/$type.png")),
       decoration: BoxDecoration(
         color: themeColor,
-        borderRadius: new BorderRadius.all(new Radius.circular(25))
+        borderRadius: BorderRadius.all(Radius.circular(25))
       ),
     );
   }

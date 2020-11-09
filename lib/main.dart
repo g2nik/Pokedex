@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import 'src/pages/home_page.dart';
-import 'src/pages/pelicula_detalle.dart';
 import 'src/pages/poke_detalle.dart';
  
 void main() => runApp(MyApp());
@@ -13,7 +11,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Películas',
+      title: 'Pokedex',
       initialRoute: '/',
       routes: {
         '/'       : ( BuildContext context ) => HomePage(),

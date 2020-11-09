@@ -24,13 +24,14 @@ class Pokemon {
   int speed;
 
   String speciesUrl;
+  String description;
 
   String technicalName;
   String imageUrl;
 
-  int rating = 5;
   bool correct = true;
   bool loaded = false;
+  bool initLoad = false;
 
   int evolutions;
   String firstEvolutionName;
@@ -43,46 +44,36 @@ class Pokemon {
   Function callback;
 
   /*
-  The constructor no longer uses location or description
-  as these are irrelevant and the API can provide alternative and
-  more relevant data
-  Also it only requires the name because it is the only data
-  needed to connect with the API 
+  The constructor has an optional argument which determines if the pokemon is loaded on creation
   */
-  Pokemon(this.name, [this.callback]) {
-    id = int.parse(name);
-    imageUrl = getImage(id);
-    load();
-  }
-
-  //Returns the same string but with the first char in capitals
-  String capitalize(String name) {
-    return name[0].toUpperCase() + name.substring(1);
+  Pokemon(this.name, [this.initLoad]) {
+    if (_isNumeric(name)) {
+      id = int.tryParse(name);
+      imageUrl = getImage(id);
+    }    
+    if (initLoad) load();
   }
 
   /*
-  Because some Pokemon have various forms that makes their API name quite long
-  and break the design so i decided to make a method to shorten their names
+  load() gets the data from the API first and then
+  it gets the image for said pokemon
   */
-  String shorten(String name) {
-    bool exit = false;
-    //Some Pokemon have their API name correct and short, so i avoid changing them
-    if (name != "ho-oh" && name != "porygon-z" && name != "jangmo-o" && name != "hakamo-o" && name != "kommo-o") {
-      for (int i = 0; i < name.length && !exit; i++) {
-        if (name[i] == "-") {
-          exit = true;
-          name = name.substring(0, i);
-        }
-      }
+  Future<Pokemon> load() async {
+    dynamic response = await fetchPokemon(name);
+    if (correct) {
+      await fromJson(response);
+      imageUrl = getImage(id);
+      if (id < 810) await getEvolutionChain();
     }
-    return name;    
-  }
+    loaded = true;
+    return this;
+}
 
   //This method gets the info from the json provided by the API
-  Future fromJson(Map<String, dynamic> json) {
+  fromJson(Map<String, dynamic> json) {
     id = json["id"];
     name = capitalize(shorten(json["name"]));
-    
+
     types = json["types"];
     numberTypes = types.length;
     firstType = types[0]["type"]["name"];
@@ -99,23 +90,6 @@ class Pokemon {
   }
 
   /*
-  load() gets the data from the API first and then
-  it gets the image for said pokemon
-  */
-  Future load() async {
-    try {
-      dynamic response = await fetchPokemon(name);
-      if (correct) await fromJson(response);
-      //if (id < 810) await getEvolutionChain();
-      loaded = true;
-      callback();
-    }
-    catch (exception) {
-      print(exception);
-    }
-  }
-
-  /*
   fetchPokemon() gets a json from the API with information about
   the pokemon we are looking for and stores in bool
   "correct" if the response was OK, indicating if such pokemon
@@ -125,10 +99,7 @@ class Pokemon {
   Future fetchPokemon(String name) async {
     technicalName = name.toLowerCase();
     final response = await http.get("https://pokeapi.co/api/v2/pokemon/$technicalName");
-    if (response.statusCode != 200) {
-      correct = false;
-      throw Exception('Failed to load $name');
-    }
+    if (response.statusCode != 200) correct = false;
     return json.decode(response.body);
   }
 
@@ -137,16 +108,21 @@ class Pokemon {
     if (pokeId < 10) imageId = "00$pokeId";
     else if (pokeId < 100) imageId = "0$pokeId";
     else imageId = "$pokeId";
-    //return "https://www.pkparaiso.com/imagenes/xy/sprites/animados/${name.toLowerCase()}.gif"; GIFS
     return "https://assets.pokemon.com/assets/cms2/img/pokedex/full/$imageId.png";
   }
 
   /*
   The following method gets the names and imageURLs from the evolutions of the Pokemon 
+  and the description of the Pokemon
   */
   Future getEvolutionChain() async {
+    int languageIndex = 0;
     //First we get the Pokemon evolution chain
     final speciesResponse = await http.get(speciesUrl);
+    var desc = json.decode(speciesResponse.body)["flavor_text_entries"];
+    //We loop through each element inside flavor_text_entries to look for the english text
+    do languageIndex++; while (desc[languageIndex]["language"]["name"]!="en");
+    description = json.decode(speciesResponse.body)["flavor_text_entries"][languageIndex]["flavor_text"].replaceAll("\n", " ");
     String evolutionChain = json.decode(speciesResponse.body)["evolution_chain"]["url"];
     final evolutionResponse = await http.get(evolutionChain);
 
@@ -207,12 +183,32 @@ class Pokemon {
     return;
   }
 
-  String getImgX() {
-    return "https://pokeres.bastionbot.org/images/pokemon/$id.png";
-    /*
-    return loaded
-    ? 'https://pokeres.bastionbot.org/images/pokemon/$id.png'
-    : 'https://www.pngitem.com/pimgs/m/2-25193_pokemon-ball-transparent-background-transparent-background-pokeball-png.png';
-    */
+   /*
+  Because some Pokemon have various forms that makes their API name quite long
+  and break the design so i decided to make a method to shorten their names
+  */
+  
+  String shorten(String name) {
+    bool exit = false;
+    //Some Pokemon have their API name correct and short, so i avoid changing them
+    if (name != "ho-oh" && name != "porygon-z" && name != "jangmo-o" && name != "hakamo-o" && name != "kommo-o") {
+      for (int i = 0; i < name.length && !exit; i++) {
+        if (name[i] == "-") {
+          exit = true;
+          name = name.substring(0, i);
+        }
+      }
+    }
+    return name;    
+  }
+  
+  //Returns the same string but with the first char in capitals
+  String capitalize(String name) {
+    return name[0].toUpperCase() + name.substring(1);
+  }
+
+  bool _isNumeric(String str) {
+    if(str == null) return false;
+    return double.tryParse(str) != null;
   }
 }

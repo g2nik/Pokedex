@@ -13,71 +13,71 @@ class PokeSwiper extends StatefulWidget {
 }
 
 class _PokeSwiperState extends State<PokeSwiper> {
+  Future<Pokemon> futurePokemon;
   int keyIndex = 0;
+
+  Future<Pokemon> _futurePokemonData() async => await widget.pokemons[keyIndex].load();
+
+  @override
+  void initState() {
+  futurePokemon = _futurePokemonData();
+  super.initState();
+  }
   
   @override
   Widget build(BuildContext context) {
     final _screenSize = MediaQuery.of(context).size;
 
-    return FutureBuilder(
-      
-    )
-
-    return widget.pokemons[keyIndex].loaded
-    ? Container(
-       padding: EdgeInsets.only(top: 10.0),
-       child: Column(
-         children: <Widget>[
-           Swiper(
-              layout: SwiperLayout.STACK,
-              itemWidth: _screenSize.width * .7,
-              itemHeight: _screenSize.height * .5,
-              itemCount: widget.pokemons.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Hero(
-                  tag: widget.pokemons[index].id.toString(),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, 'detalle', arguments: widget.pokemons[index]);
-                        print(widget.pokemons[index].id);
-                        print(index);
+      return FutureBuilder(
+          future: futurePokemon,
+          builder: (context, data) {
+            return data.hasData
+            ? Container(
+              padding: EdgeInsets.only(top: 10.0),
+              child: Column(
+                children: <Widget>[
+                  Swiper(
+                      layout: SwiperLayout.STACK,
+                      itemWidth: _screenSize.width,
+                      itemHeight: _screenSize.height * .5,
+                      itemCount: widget.pokemons.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Hero(
+                          tag: widget.pokemons[index].id.toString(),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                if (widget.pokemons[index].loaded) Navigator.pushNamed(context, 'detalle', arguments: widget.pokemons[index]);
+                              },
+                              child: FadeInImage(
+                                image: NetworkImage(widget.pokemons[index].imageUrl),
+                                placeholder: AssetImage('assets/pokeball.png'),
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          ),
+                        );
                       },
-                      child: FadeInImage(
-                        image: NetworkImage(widget.pokemons[index].imageUrl),
-                        placeholder: AssetImage('assets/pokeball.png'),
-                        fit: BoxFit.cover,
+                      onIndexChanged: (index) {
+                        setState(() => keyIndex = index);
+                      },
+                    ),
+                    SizedBox(height: 30),
+                    Text(
+                      "${widget.pokemons[keyIndex].name} #${widget.pokemons[keyIndex].id}",
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white
                       ),
-                    )
-                  ),
-                );
-              },
-              onIndexChanged: (index) {
-                setState(() => keyIndex = index);
-              },
-            ),
-            SizedBox(height: 50),
-            Text(widget.pokemons[keyIndex].name),
-            pokeType(),
-         ],
-       ),
-    )
-    : Center(child: CircularProgressIndicator());
-  }
-
-  Widget pokeType() {
-    return widget.pokemons[keyIndex].numberTypes == 1//widget.pokemons[keyIndex].types.length == 1
-    ? PokeType((widget.pokemons[keyIndex].firstType))
-    : Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        PokeType((widget.pokemons[keyIndex].firstType)),
-        SizedBox(width: 50),
-        PokeType((widget.pokemons[keyIndex].secondType))
-      ],
-    );
-  }
+                    ),
+                    SizedBox(height: 20),
+                    PokeTypes(widget.pokemons[keyIndex]),
+                ],
+              ),
+            )
+            : Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Colors.redAccent),));
+          });
+      }
 }
-
-

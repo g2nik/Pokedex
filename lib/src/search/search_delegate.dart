@@ -1,39 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../src/models/pelicula_model.dart';
-import '../../src/providers/peliculas_provider.dart';
+import '../../src/models/poke_model.dart';
+import 'package:pokedex/src/providers/poke_provider.dart';
 
 class DataSearch extends SearchDelegate {
-  String seleccion = '';
-  final peliculasProvider = new PeliculasProvider();
-
-  final peliculas = [
-    'Spiderman',
-    'Aquaman',
-    'Batman',
-    'Shazam!',
-    'Ironman',
-    'Capitan America',
-    'Superman',
-    'Ironman 2',
-    'Ironman 3',
-    'Ironman 4',
-    'Ironman 5',
-  ];
-
-  final peliculasRecientes = [
-    'Spiderman',
-    'Capitan America'
-  ];
-  
+  String seleccion = "";
+  final pokeProvider = new PokeProvider();
 
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
         icon: Icon( Icons.clear ),
-        onPressed: () {
-          query = '';
-        },
+        onPressed: () => query = "",
       )
     ];
   }
@@ -45,7 +23,7 @@ class DataSearch extends SearchDelegate {
         icon: AnimatedIcons.menu_arrow,
         progress: transitionAnimation,
       ),
-      onPressed: () => close(context, null),
+      onPressed: () {close(context, null);},
     );
   }
 
@@ -55,7 +33,7 @@ class DataSearch extends SearchDelegate {
       child: Container(
         height: 100.0,
         width: 100.0,
-        color: Colors.blueAccent,
+        color: Colors.redAccent,
         child: Text(seleccion),
       ),
     );
@@ -66,34 +44,24 @@ class DataSearch extends SearchDelegate {
     // Son las sugerencias que aparecen cuando la persona escribe
     if (query.isEmpty) return Container();
 
-    return FutureBuilder(
-      future: peliculasProvider.buscarPelicula(query),
-      builder: (BuildContext context, AsyncSnapshot<List<Pelicula>> snapshot) {
+    return FutureBuilder (
+      future: pokeProvider.buscarPokemon(query),
+      builder: (BuildContext context, AsyncSnapshot<Pokemon> snapshot) {
         if (snapshot.hasData) {
-          final peliculas = snapshot.data;
-
-          return ListView(
-            children: peliculas.map( (pelicula) {
-                return ListTile(
-                  title: Text( pelicula.title ),
-                  subtitle: Text( pelicula.originalTitle ),
-                  leading: FadeInImage(
-                    image: NetworkImage( pelicula.getPosterImg() ),
-                    placeholder: AssetImage('assets/pokeball.png'),
-                    width: 50.0,
-                    fit: BoxFit.contain,
-                  ),
-                  onTap: () {
-                    close( context, null);
-                    pelicula.uniqueId = '';
-                    Navigator.pushNamed(context, 'detalle', arguments: pelicula);
-                  },
-                );
-            }).toList()
+          Pokemon pokemon = snapshot.data;
+          return Column(
+            children: <Widget>[
+              ListTile(
+                tileColor: Colors.white,
+                title: Text(pokemon.name),
+                onTap: () {
+                  if (pokemon.loaded) Navigator.pushNamed(context, 'detalle', arguments: pokemon);
+                },
+              ),
+            ]
           );
-        } else return Center(child: CircularProgressIndicator());
+        } else return Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Colors.red)));
       },
     );
   }
 }
-
