@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pokedex/src/models/poke_model.dart';
 
+//This widget returns 1 or 2 Tootlips depending on how many types a pokemon has
 class PokeTypes extends StatelessWidget {
-
   final Pokemon pokemon;
   PokeTypes(this.pokemon);
-
   @override
   Widget build(BuildContext context) {
     return pokemon.numberTypes == 1
@@ -21,6 +20,7 @@ class PokeTypes extends StatelessWidget {
   }
 }
 
+//This is a widget that given a parameter returns a tooltip with an image, a color and text
 class ToolTip extends StatelessWidget {
   ToolTip(type) {
     this.type = type;

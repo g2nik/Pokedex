@@ -23,29 +23,23 @@ class DataSearch extends SearchDelegate {
         icon: AnimatedIcons.menu_arrow,
         progress: transitionAnimation,
       ),
-      onPressed: () {close(context, null);},
+      onPressed: () => close(context, null),
     );
   }
 
   @override
   Widget buildResults(BuildContext context) {
-    return Center(
-      child: Container(
-        height: 100.0,
-        width: 100.0,
-        color: Colors.redAccent,
-        child: Text(seleccion),
-      ),
-    );
+    //This function now displays the text below
+    return Center(child: Container(child: Text("Type a valid pokemon name")));
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    // Son las sugerencias que aparecen cuando la persona escribe
     if (query.isEmpty) return Container();
 
     return FutureBuilder (
-      future: pokeProvider.buscarPokemon(query),
+      //I ask the provider to search the pokemon using the query as its name
+      future: pokeProvider.searchPokemon(query),
       builder: (BuildContext context, AsyncSnapshot<Pokemon> snapshot) {
         if (snapshot.hasData) {
           Pokemon pokemon = snapshot.data;
@@ -55,7 +49,7 @@ class DataSearch extends SearchDelegate {
                 tileColor: Colors.white,
                 title: Text(pokemon.name),
                 onTap: () {
-                  if (pokemon.loaded) Navigator.pushNamed(context, 'detalle', arguments: pokemon);
+                  if (pokemon.loaded) Navigator.pushNamed(context, 'detail', arguments: pokemon);
                 },
               ),
             ]
